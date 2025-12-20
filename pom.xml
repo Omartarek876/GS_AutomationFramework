@@ -79,6 +79,7 @@
                     <!-- Allure results output directory -->
                     <systemPropertyVariables>
                         <allure.results.directory>target/allure-results</allure.results.directory>
+                        <allure.suite.name>${project.artifactId}</allure.suite.name>
                     </systemPropertyVariables>
 
                     <!-- Enable AspectJ agent -->
@@ -87,6 +88,8 @@
                     </argLine>
                     <properties>
                         <property>
+                            <name>listener</name>
+                            <value>utils.AllureReportChangesListener</value>
                             <name>listener</name>
                             <value>utils.TestNgListener</value>
                         </property>
@@ -100,6 +103,7 @@
                 <artifactId>allure-maven</artifactId>
                 <version>2.16.1</version>
                 <configuration>
+                    <reportDirectory>${project.build.directory}/allure-report</reportDirectory>
                     <reportVersion>2.31.0</reportVersion>
                     <singleFile>true</singleFile>
                 </configuration>
