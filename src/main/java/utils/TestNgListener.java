@@ -23,7 +23,29 @@ public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMe
 
     @Override
     public void onFinish(ISuite suite) {
-        System.out.println("Excution is finished....Thank you");
+        System.out.println("Execution is finished ... Thank you !.. ");
+        try {
+            // Generate report
+            String[] generateCmd = { "cmd.exe", "/c", "mvn allure:report" };
+            Process genProcess = new ProcessBuilder(generateCmd)
+                    .inheritIO()
+                    .start();
+            genProcess.waitFor();
+            System.out.println("Allure report generated successfully!");
+
+            String reportPath = System.getProperty("user.dir") + "\\target\\allure-report";
+
+            // Serve report (optional)
+            File htmlFile = new File(reportPath + "\\index.html");
+            if(htmlFile.exists()) {
+                java.awt.Desktop.getDesktop().browse(htmlFile.toURI());
+                System.out.println("Allure report opened in browser!");
+            }
+            System.out.println("Allure report is being served at http://localhost:####/ (Press Ctrl+C to stop)");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
