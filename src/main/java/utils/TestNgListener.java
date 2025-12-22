@@ -1,10 +1,16 @@
 package utils;
 
 import io.qameta.allure.Allure;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
+import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.testng.*;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -12,21 +18,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMethodListener {
+public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMethodListener, IAlterSuiteListener {
     @Override
     public void onStart(ISuite suite) {
-        System.out.println("Hello from Giza Systems Interns 2025\n" + "we are starting our excution from here....");
+        System.out.println("Hello from Giza Systems Interns 2025 - Graudation Project \n" + "we are starting our excution from here....");
         PropertiesReader.loadProperties();
     }
 
     @Override
     public void onFinish(ISuite suite) {
-        System.out.println("Execution is finished ... Thank you !.. ");
+        System.out.println(".....Execution is finished.....\n.....Excuted By Omar Tarek and Bassant Kamal.....\n.....Thank you!.....");
         try {
             // Generate report
-            String[] generateCmd = { "cmd.exe", "/c", "mvn allure:report" };
+            String[] generateCmd = {"cmd.exe", "/c", "mvn allure:report"};
             Process genProcess = new ProcessBuilder(generateCmd)
                     .inheritIO()
                     .start();
@@ -37,7 +45,7 @@ public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMe
 
             // Serve report (optional)
             File htmlFile = new File(reportPath + "\\index.html");
-            if(htmlFile.exists()) {
+            if (htmlFile.exists()) {
                 java.awt.Desktop.getDesktop().browse(htmlFile.toURI());
                 System.out.println("Allure report opened in browser!");
             }
@@ -57,22 +65,6 @@ public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMe
     public void onTestSuccess(ITestResult result) {
         System.out.println("[PASS] Test passed: " + result.getName());
     }
-
-/*    @Override
-    public void onTestFailure(ITestResult result) {
-        System.out.println("[FAIL] Test failed: " + result.getName());
-        try {
-            TakesScreenshot ts = (TakesScreenshot) DriverFactory.getDriver();
-            File src = ts.getScreenshotAs(OutputType.FILE);
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String dest = "FailedTestsScreenshots/" + result.getName() + "_" + timestamp + ".png";
-            Files.createDirectories(Paths.get("screenshots"));
-            Files.copy(src.toPath(), Paths.get(dest));
-            System.out.println("[INFO] Screenshot saved at: " + dest);
-        } catch (IOException | ClassCastException e) {
-            System.out.println("[ERROR] Failed to take screenshot: " + e.getMessage());
-        }
-    }*/
 
     @Override
     public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
@@ -98,6 +90,50 @@ public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMe
     public void onTestFailedWithTimeout(ITestResult result) {
         System.out.println("[TIMEOUT] Test failed due to timeout: " + result.getName());
         onTestFailure(result);
+    }
+
+    @Override
+    public void alter(List<XmlSuite> suites) {
+        String projectName = System.getProperty("allure.suite.name", "DefaultProjectName");
+
+        for (XmlSuite suite : suites) {
+            suite.setName(projectName);
+
+            List<XmlTest> originalTests = new ArrayList<>(suite.getTests());
+            suite.getTests().clear();
+
+            for (XmlTest test : originalTests) {
+                List<XmlClass> classes = test.getClasses();
+
+                if (classes.size() > 1) {
+                    // Create separate XmlTest for each class
+                    for (XmlClass clazz : classes) {
+                        XmlTest newTest = new XmlTest(suite);
+                        newTest.setName(getFeatureName(clazz));
+                        List<XmlClass> singleClassList = new ArrayList<>();
+                        singleClassList.add(clazz);
+                        newTest.setXmlClasses(singleClassList);
+                    }
+                } else {
+                    // Single class, just rename test based on feature
+                    XmlClass clazz = classes.get(0);
+                    test.setName(getFeatureName(clazz));
+                    suite.getTests().add(test);
+                }
+            }
+        }
+    }
+
+    private String getFeatureName(XmlClass xmlClass) {
+        try {
+            Class<?> clazz = Class.forName(xmlClass.getName()); // load the actual class
+            Feature feature = clazz.getAnnotation(Feature.class);
+            if (feature != null) return feature.value();
+            return clazz.getSimpleName(); // fallback to real class simple name
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return xmlClass.getName(); // fallback to full name if class not found
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package utils;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.WebDriver;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ public class BrowserUtils {
         return DriverFactory.getDriver();
     }
 
+    @Step("Navigate to Url : [{url}]")
     public static void navigateToUrl(String url) {
         driver().navigate().to(url);
     }

@@ -1,5 +1,6 @@
 package utils;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -57,6 +58,7 @@ public class DriverFactory {
         return driver;
     }
 
+    @Step("Quit the browser")
     public static void quitDriver() {
         driver.quit();
     }
