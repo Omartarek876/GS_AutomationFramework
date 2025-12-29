@@ -1,9 +1,6 @@
 package utils;
 
-import io.qameta.allure.Allure;
-import io.qameta.allure.Feature;
-import io.qameta.allure.Step;
-import org.openqa.selenium.By;
+import io.qameta.allure.*;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -14,40 +11,43 @@ import org.testng.xml.XmlTest;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMethodListener, IAlterSuiteListener {
+
     @Override
     public void onStart(ISuite suite) {
-        System.out.println("Hello from Giza Systems Interns 2025 - Graudation Project \n" + "we are starting our excution from here....");
+        System.out.println("Hello from Giza Systems Interns 2025 - Graduation Project \n" +
+                "we are starting our execution from here....");
         PropertiesReader.loadProperties();
     }
 
     @Override
     public void onFinish(ISuite suite) {
-        System.out.println(".....Execution is finished.....\n.....Excuted By Omar Tarek and Bassant Kamal.....\n.....Thank you!.....");
+        System.out.println(".....Execution is finished.....\n.....Executed By Omar Tarek and Bassant Kamal.....\n.....Thank you!.....");
         try {
-            // Generate report
-            String[] generateCmd = {"cmd.exe", "/c", "mvn allure:report"};
+            // Generate report using Linux-compatible command
+            String[] generateCmd = {"mvn", "allure:report"};
             Process genProcess = new ProcessBuilder(generateCmd)
                     .inheritIO()
                     .start();
             genProcess.waitFor();
             System.out.println("Allure report generated successfully!");
 
-            String reportPath = System.getProperty("user.dir") + "\\target\\allure-report";
+            String reportPath = System.getProperty("user.dir") + File.separator + "target" + File.separator + "allure-report";
 
             // Serve report (optional)
-            File htmlFile = new File(reportPath + "\\index.html");
+            File htmlFile = new File(reportPath + File.separator + "index.html");
             if (htmlFile.exists()) {
-                java.awt.Desktop.getDesktop().browse(htmlFile.toURI());
-                System.out.println("Allure report opened in browser!");
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().browse(htmlFile.toURI());
+                    System.out.println("Allure report opened in browser!");
+                } else {
+                    System.out.println("Desktop browsing not supported on this system. Open report manually at: " + htmlFile.getAbsolutePath());
+                }
+            } else {
+                System.out.println("Report file not found at: " + htmlFile.getAbsolutePath());
             }
             System.out.println("Allure report is being served at http://localhost:####/ (Press Ctrl+C to stop)");
 
@@ -74,7 +74,6 @@ public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMe
             Allure.addAttachment("Failure Screenshot", new ByteArrayInputStream(screenshot));
         }
     }
-
 
     @Override
     public void onTestSkipped(ITestResult result) {
@@ -136,5 +135,3 @@ public class TestNgListener implements ISuiteListener, ITestListener, IInvokedMe
         }
     }
 }
-
-
