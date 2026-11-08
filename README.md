@@ -1,1 +1,1 @@
-# GS_AutomationFramework
+# AutomationFramework using Selenium, Testng and allure report
